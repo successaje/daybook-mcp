@@ -1,0 +1,25 @@
+{
+  "name": "daybook-mcp",
+  "version": "0.1.0",
+  "description": "Local-first MCP server for logging daily activities and generating summaries/posts from them.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "daybook-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "node --experimental-strip-types --watch src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "better-sqlite3": "^11.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^22.7.4",
+    "typescript": "^5.6.2"
+  }
+}
