@@ -59,11 +59,37 @@ start a new session before the tools appear.
 
 ## Using the skill
 
-Point Claude Code at `packages/skill/SKILL.md` (copy it into your skills
-directory, or reference it directly) and it will drive the same
-functionality through `node packages/skill/scripts/cli.js <command>`. No
-registration or restart required — it's available as soon as the skill is
-loaded.
+The repo ships a symlink at `.claude/skills/daybook` pointing at
+`packages/skill`, so if you clone this repo and open it in Claude Code,
+the skill is auto-discovered — no registration step. To use it from a
+different project, copy or symlink `packages/skill` into that project's
+own `.claude/skills/<name>/` directory instead.
+
+Either way, once it's built (`npm run build`, which also builds the CLI to
+`packages/skill/scripts/cli.js`), it's available immediately — no restart.
+
+## Usage
+
+Once either interface is set up, just talk to Claude normally. You don't
+need to name tools or commands — describe what you want:
+
+- **"Log that I fixed the flaky auth test today"** — logs an activity note.
+- **"What did I get done this week?"** — fetches raw entries for a range.
+- **"Summarize my day"** — pulls today's entries, drafts a short recap in
+  your configured voice, and stores it.
+- **"Draft a tweet about today"** / **"turn this week into a LinkedIn
+  post"** — pulls the relevant entries/summaries, drafts a post following
+  that platform's tone rules, and stores it as a draft for your review.
+- **"Show me my drafts"** / **"mark draft 3 as posted"** — list and update
+  stored drafts.
+- **"Give me a weekly review"** — reads the last 7 days of summaries and
+  proposes the single strongest article angle from the week, as a title +
+  bullet outline. This is exploratory and is never saved automatically.
+
+Because the generation tools are two-phase (see below), you'll see Claude
+fetch material first, draft the text itself in your voice, then store it —
+rather than a black box handing back finished text. That's deliberate: you
+can watch it happen and redirect mid-draft if the tone is off.
 
 ## Tools / commands
 
@@ -102,6 +128,13 @@ Platform-specific tone rules (length, formality) live in
 project uses Node instead (Node 22+ can run the TypeScript sources directly
 via `node --experimental-strip-types`, or build with `npm run build` and
 run the compiled output).
+
+## Contributing
+
+Contributions are welcome — bug fixes, new platform tone rules, additional
+commands, whatever's useful. See [CONTRIBUTING.md](./CONTRIBUTING.md) for
+the project layout, dev setup, and how to keep the MCP server and the
+skill in sync when adding a capability.
 
 ## License
 
