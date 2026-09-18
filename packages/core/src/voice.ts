@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const VOICE_PATH = join(dirname(fileURLToPath(import.meta.url)), "..", "voice.md");
+// Repo layout is <root>/packages/core/dist/voice.js at runtime, so three
+// levels up from this compiled file lands back at <root>/voice.md.
+const VOICE_PATH =
+  process.env.DAYBOOK_VOICE_PATH ||
+  join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "voice.md");
 
 const FALLBACK_VOICE =
   "Poetic, spiritually grounded, first-person. Ties technical work to a larger arc. Understated confidence, not hype.";

@@ -8,7 +8,7 @@ const DB_PATH = join(DAYBOOK_DIR, "daybook.db");
 
 mkdirSync(DAYBOOK_DIR, { recursive: true });
 
-export const db = new Database(DB_PATH);
+export const db: import("better-sqlite3").Database = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
 
 db.exec(`

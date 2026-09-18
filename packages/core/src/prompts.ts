@@ -5,3 +5,13 @@ export const PLATFORM_RULES: Record<"x" | "medium" | "linkedin", string> = {
   linkedin:
     "Strictly professional. Suspend the poetic voice entirely — no metaphor, no spiritual framing. Frame the work as an achievement or insight for a career-minded audience: what was built, what it took, what it signals.",
 };
+
+export function formatEntriesForPrompt(
+  entries: { timestamp: string; project_tag: string | null; text: string }[]
+): string {
+  return entries
+    .slice()
+    .reverse()
+    .map((e) => `- [${e.timestamp}]${e.project_tag ? ` (${e.project_tag})` : ""} ${e.text}`)
+    .join("\n");
+}

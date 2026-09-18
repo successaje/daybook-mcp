@@ -10,9 +10,10 @@ import {
   insertDraft,
   listDrafts,
   markDraftPosted,
-} from "./db.js";
-import { loadVoice } from "./voice.js";
-import { PLATFORM_RULES } from "./prompts.js";
+  loadVoice,
+  PLATFORM_RULES,
+  formatEntriesForPrompt,
+} from "@daybook/core";
 
 const server = new McpServer({
   name: "daybook-mcp",
@@ -80,16 +81,6 @@ server.registerTool(
     };
   }
 );
-
-function formatEntriesForPrompt(
-  entries: { timestamp: string; project_tag: string | null; text: string }[]
-): string {
-  return entries
-    .slice()
-    .reverse()
-    .map((e) => `- [${e.timestamp}]${e.project_tag ? ` (${e.project_tag})` : ""} ${e.text}`)
-    .join("\n");
-}
 
 server.registerTool(
   "generate_daily_summary",
