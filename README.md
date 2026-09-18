@@ -40,6 +40,11 @@ Register it with Claude Code:
 claude mcp add daybook -- node /path/to/daybook-mcp/packages/mcp-server/dist/index.js
 ```
 
+This writes the server entry into Claude Code's own config — `~/.claude.json`
+under this project's entry, not a file in this repo — so there's nothing
+to commit for it, unlike the skill's `.claude/skills/daybook` symlink
+(see "Using the skill" below).
+
 Or add to Claude Desktop's `claude_desktop_config.json`:
 
 ```json
