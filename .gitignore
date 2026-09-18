@@ -3,3 +3,4 @@ dist/
 packages/skill/scripts/
 *.log
 .DS_Store
+.claude/scheduled_tasks.lock
