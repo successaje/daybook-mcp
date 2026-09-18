@@ -5,6 +5,8 @@ import { z } from "zod";
 import {
   insertEntry,
   getEntriesInRange,
+  getMilestoneEntriesInRange,
+  flagMilestone,
   insertSummary,
   getSummariesInRange,
   insertDraft,
@@ -13,38 +15,77 @@ import {
   loadVoice,
   PLATFORM_RULES,
   formatEntriesForPrompt,
+  MILESTONE_GUIDANCE,
 } from "@daybook/core";
 
-const server = new McpServer({
-  name: "daybook-mcp",
-  version: "0.1.0",
-});
+const server = new McpServer(
+  {
+    name: "daybook-mcp",
+    version: "0.1.0",
+  },
+  {
+    instructions: MILESTONE_GUIDANCE,
+  }
+);
 
 server.registerTool(
   "log_entry",
   {
     title: "Log Entry",
     description:
-      "Insert a raw activity note into the daybook with the current timestamp.",
+      "Insert a raw activity note into the daybook with the current timestamp. " +
+      MILESTONE_GUIDANCE,
     inputSchema: {
       text: z.string().min(1).describe("The activity note text to log."),
       project_tag: z
         .string()
         .optional()
         .describe("Optional short tag identifying the project/context."),
+      milestone: z
+        .boolean()
+        .optional()
+        .describe(
+          "Set true when this represents a completed feature, resolved hard problem, shipped " +
+            "release, or other milestone worth potentially turning into a post."
+        ),
     },
   },
-  async ({ text, project_tag }) => {
-    const entry = insertEntry(text, project_tag);
+  async ({ text, project_tag, milestone }) => {
+    const entry = insertEntry(text, project_tag, undefined, milestone);
     return {
       content: [
         {
           type: "text",
           text: `Logged entry #${entry.id} at ${entry.timestamp}${
             entry.project_tag ? ` [${entry.project_tag}]` : ""
-          }: ${entry.text}`,
+          }${entry.milestone ? " [MILESTONE]" : ""}: ${entry.text}`,
         },
       ],
+    };
+  }
+);
+
+server.registerTool(
+  "flag_milestone",
+  {
+    title: "Flag Milestone",
+    description:
+      "Retroactively mark an already-logged entry as a milestone, when you realize its " +
+      "significance after the fact rather than at the moment you logged it.",
+    inputSchema: {
+      entry_id: z.number().int().describe("The id of the entry to flag as a milestone."),
+    },
+  },
+  async ({ entry_id }) => {
+    const updated = flagMilestone(entry_id);
+    if (!updated) {
+      return {
+        content: [{ type: "text", text: `No entry found with id ${entry_id}.` }],
+        isError: true,
+      };
+    }
+    return {
+      content: [{ type: "text", text: `Entry #${updated.id} flagged as a milestone.` }],
     };
   }
 );
@@ -74,7 +115,9 @@ server.registerTool(
     }
     const lines = entries.map(
       (e) =>
-        `#${e.id} [${e.timestamp}]${e.project_tag ? ` (${e.project_tag})` : ""}: ${e.text}`
+        `#${e.id}${e.milestone ? " [MILESTONE]" : ""} [${e.timestamp}]${
+          e.project_tag ? ` (${e.project_tag})` : ""
+        }: ${e.text}`
     );
     return {
       content: [{ type: "text", text: lines.join("\n") }],
@@ -326,6 +369,9 @@ server.registerTool(
       .reverse()
       .map((s) => `- [${s.date}] ${s.content}`)
       .join("\n");
+    const milestones = getMilestoneEntriesInRange(startDate, endDate);
+    const milestoneLines =
+      milestones.length > 0 ? formatEntriesForPrompt(milestones) : "(none flagged this week)";
 
     return {
       content: [
@@ -333,9 +379,11 @@ server.registerTool(
           type: "text",
           text:
             `Review the past week's daily summaries (${startDate} to ${endDate}) below and identify ` +
-            `the single strongest article angle from the week's work. Respond with an outline: a title ` +
+            `the single strongest article angle from the week's work. Weigh flagged milestones heavily — ` +
+            `they were already judged post-worthy in the moment. Respond with an outline: a title ` +
             `and 3-5 supporting bullets, in the voice given. This is exploratory — do not save it as a draft.\n\n` +
             `Voice: ${voice}\n\n` +
+            `Milestones flagged this week:\n${milestoneLines}\n\n` +
             `Summaries:\n${summaryLines}`,
         },
       ],

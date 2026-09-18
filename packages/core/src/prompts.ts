@@ -7,11 +7,27 @@ export const PLATFORM_RULES: Record<"x" | "medium" | "linkedin", string> = {
 };
 
 export function formatEntriesForPrompt(
-  entries: { timestamp: string; project_tag: string | null; text: string }[]
+  entries: { timestamp: string; project_tag: string | null; text: string; milestone?: number }[]
 ): string {
   return entries
     .slice()
     .reverse()
-    .map((e) => `- [${e.timestamp}]${e.project_tag ? ` (${e.project_tag})` : ""} ${e.text}`)
+    .map(
+      (e) =>
+        `- ${e.milestone ? "★ MILESTONE " : ""}[${e.timestamp}]${
+          e.project_tag ? ` (${e.project_tag})` : ""
+        } ${e.text}`
+    )
     .join("\n");
 }
+
+export const MILESTONE_GUIDANCE =
+  "Whenever logged work represents a completed feature, a resolved hard problem, a shipped " +
+  "release, or another milestone — not routine progress — log it with milestone set to true, " +
+  "then immediately (without being asked) tell the user this seems like good material for a " +
+  "post: name which platform fits best (X for a quick technical win, LinkedIn for a " +
+  "professional achievement worth a career audience, Medium for something with a bigger " +
+  "reflective arc) and why, in one or two sentences. Offer to draft it, but wait for their " +
+  "go-ahead before generating anything. Never draft, copy, or post anything without being " +
+  "asked, and never post on the user's behalf at all — copying, editing, and posting the " +
+  "finished draft is entirely up to them.";

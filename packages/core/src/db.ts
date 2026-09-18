@@ -41,12 +41,18 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_summaries_date ON summaries (date);
 `);
 
+const entryColumns = db.prepare(`PRAGMA table_info(entries)`).all() as { name: string }[];
+if (!entryColumns.some((c) => c.name === "milestone")) {
+  db.exec(`ALTER TABLE entries ADD COLUMN milestone INTEGER NOT NULL DEFAULT 0`);
+}
+
 export interface EntryRow {
   id: number;
   timestamp: string;
   text: string;
   project_tag: string | null;
   source: string | null;
+  milestone: number;
 }
 
 export interface SummaryRow {
@@ -66,15 +72,27 @@ export interface DraftRow {
   created_at: string;
 }
 
-export function insertEntry(text: string, projectTag?: string, source?: string): EntryRow {
+export function insertEntry(
+  text: string,
+  projectTag?: string,
+  source?: string,
+  milestone?: boolean
+): EntryRow {
   const timestamp = new Date().toISOString();
   const stmt = db.prepare(
-    `INSERT INTO entries (timestamp, text, project_tag, source) VALUES (?, ?, ?, ?)`
+    `INSERT INTO entries (timestamp, text, project_tag, source, milestone) VALUES (?, ?, ?, ?, ?)`
   );
-  const info = stmt.run(timestamp, text, projectTag ?? null, source ?? "claude");
+  const info = stmt.run(timestamp, text, projectTag ?? null, source ?? "claude", milestone ? 1 : 0);
   return db
     .prepare(`SELECT * FROM entries WHERE id = ?`)
     .get(info.lastInsertRowid) as EntryRow;
+}
+
+export function flagMilestone(entryId: number): EntryRow | undefined {
+  db.prepare(`UPDATE entries SET milestone = 1 WHERE id = ?`).run(entryId);
+  return db.prepare(`SELECT * FROM entries WHERE id = ?`).get(entryId) as
+    | EntryRow
+    | undefined;
 }
 
 export function getEntriesInRange(startDate: string, endDate: string): EntryRow[] {
@@ -82,6 +100,16 @@ export function getEntriesInRange(startDate: string, endDate: string): EntryRow[
     .prepare(
       `SELECT * FROM entries
        WHERE date(timestamp) >= date(?) AND date(timestamp) <= date(?)
+       ORDER BY timestamp DESC`
+    )
+    .all(startDate, endDate) as EntryRow[];
+}
+
+export function getMilestoneEntriesInRange(startDate: string, endDate: string): EntryRow[] {
+  return db
+    .prepare(
+      `SELECT * FROM entries
+       WHERE milestone = 1 AND date(timestamp) >= date(?) AND date(timestamp) <= date(?)
        ORDER BY timestamp DESC`
     )
     .all(startDate, endDate) as EntryRow[];

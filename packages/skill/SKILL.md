@@ -1,6 +1,6 @@
 ---
 name: daybook
-description: Log daily activity notes and generate daily summaries, weekly article-angle reviews, and platform-specific posts (X, Medium, LinkedIn) from them, in the user's own configured voice. Use this whenever the user wants to log what they did today, record a work note, summarize their day, review the past week's work for a strongest article angle, or draft a post/tweet/article about their recent work — even if they don't say "daybook" by name. Trigger on phrases like "log this", "note that I...", "summarize my day", "what did I do today", "weekly review", "draft a tweet about today", "write a LinkedIn post about this week", "turn this into a Medium post", or "mark that post as posted". This is a CLI-backed alternative to the daybook-mcp MCP server — prefer this skill when the MCP server isn't registered/loaded in the current session.
+description: Log daily activity notes and generate daily summaries, weekly article-angle reviews, and platform-specific posts (X, Medium, LinkedIn) from them, in the user's own configured voice. Use this whenever the user wants to log what they did today, record a work note, summarize their day, review the past week's work for a strongest article angle, or draft a post/tweet/article about their recent work — even if they don't say "daybook" by name. Trigger on phrases like "log this", "note that I...", "summarize my day", "what did I do today", "weekly review", "draft a tweet about today", "write a LinkedIn post about this week", "turn this into a Medium post", or "mark that post as posted". Also use this proactively, without being asked, whenever a significant piece of work just got finished in conversation — a shipped feature, a resolved hard bug, a release, a launch — to flag it as a milestone and suggest it could be worth a post. This is a CLI-backed alternative to the daybook-mcp MCP server — prefer this skill when the MCP server isn't registered/loaded in the current session.
 ---
 
 # Daybook
@@ -24,18 +24,49 @@ build it once from the package root:
 npm install && npm run build
 ```
 
+## Proactively flagging milestones
+
+This is the part of the skill that runs without being asked. Whenever
+something logged represents a completed feature, a resolved hard problem,
+a shipped release, or another milestone — not routine progress — log it
+with `--milestone`, then immediately tell the user, unprompted, that this
+seems like good material for a post. Name which platform actually fits:
+X for a quick technical win, LinkedIn for a professional achievement worth
+a career audience, Medium for something with a bigger reflective arc — and
+say why in one or two sentences.
+
+Then stop and wait. Offer to draft it, but don't generate anything until
+they say yes, and never post or publish anything yourself — copying,
+editing, and posting the finished draft is entirely the user's job, not
+this skill's. The value here is noticing and suggesting, not automating
+the actual posting.
+
+Judgment matters more than a rule here: most work is routine and shouldn't
+trigger this — only flag things that would genuinely make the user pause
+and think "oh, that's actually worth telling people about."
+
 ## Commands
 
 ### Log an activity note
 
 ```bash
-node scripts/cli.js log "<text>" [--tag <project_tag>]
+node scripts/cli.js log "<text>" [--tag <project_tag>] [--milestone]
 ```
 
 Use this the moment the user mentions something they did, decided, or
 noticed — don't wait to be asked to "log" explicitly if the intent is clear
 ("just fixed the auth bug" said in passing is worth logging if the user is
-using this skill to track their work).
+using this skill to track their work). Add `--milestone` when it clears the
+bar described above.
+
+### Flag a milestone retroactively
+
+```bash
+node scripts/cli.js flag-milestone <entry_id>
+```
+
+Use this if you realize an already-logged entry was more significant than
+it seemed at the time.
 
 ### Fetch raw entries
 
@@ -113,9 +144,11 @@ node scripts/cli.js mark-posted <draft_id>
 node scripts/cli.js review
 ```
 
-Pulls the last 7 days of stored daily summaries and prints them along with
-the voice to write in. Read them, pick the single strongest article angle
-from the week's actual work, and reply directly to the user with an outline
+Pulls the last 7 days of stored daily summaries plus any milestone-flagged
+entries from that range, and prints them along with the voice to write in.
+Weigh flagged milestones heavily — they were already judged post-worthy in
+the moment. Read everything, pick the single strongest article angle from
+the week's actual work, and reply directly to the user with an outline
 (a title plus 3-5 supporting bullets). **Do not run the `post` command to
 store this as a draft** — a weekly review outline is exploratory and stays
 in the conversation unless the user separately asks you to turn it into an

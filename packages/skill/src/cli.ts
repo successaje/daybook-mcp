@@ -2,6 +2,8 @@
 import {
   insertEntry,
   getEntriesInRange,
+  getMilestoneEntriesInRange,
+  flagMilestone,
   insertSummary,
   getSummariesInRange,
   insertDraft,
@@ -58,7 +60,8 @@ function lastWeekRange(): { startDate: string; endDate: string } {
 const USAGE = `Usage: cli.js <command> [options]
 
 Commands:
-  log "<text>" [--tag <project_tag>]
+  log "<text>" [--tag <project_tag>] [--milestone]
+  flag-milestone <entry_id>
   entries --start <date> --end <date>
   summary --date <date> [--text "<summary>"]
   post --start <date> --end <date> --platform <x|medium|linkedin> [--text "<content>"]
@@ -74,13 +77,22 @@ function main() {
   switch (command) {
     case "log": {
       const text = positional[0];
-      if (!text) fail('Usage: log "<text>" [--tag <project_tag>]');
-      const entry = insertEntry(text, str(flags, "tag"));
+      if (!text) fail('Usage: log "<text>" [--tag <project_tag>] [--milestone]');
+      const entry = insertEntry(text, str(flags, "tag"), undefined, Boolean(flags.milestone));
       console.log(
         `Logged entry #${entry.id} at ${entry.timestamp}${
           entry.project_tag ? ` [${entry.project_tag}]` : ""
-        }: ${entry.text}`
+        }${entry.milestone ? " [MILESTONE]" : ""}: ${entry.text}`
       );
+      break;
+    }
+
+    case "flag-milestone": {
+      const id = Number(positional[0]);
+      if (!id) fail("Usage: flag-milestone <entry_id>");
+      const updated = flagMilestone(id);
+      if (!updated) fail(`No entry found with id ${id}.`);
+      console.log(`Entry #${updated.id} flagged as a milestone.`);
       break;
     }
 
@@ -95,7 +107,9 @@ function main() {
       }
       for (const e of entries) {
         console.log(
-          `#${e.id} [${e.timestamp}]${e.project_tag ? ` (${e.project_tag})` : ""}: ${e.text}`
+          `#${e.id}${e.milestone ? " [MILESTONE]" : ""} [${e.timestamp}]${
+            e.project_tag ? ` (${e.project_tag})` : ""
+          }: ${e.text}`
         );
       }
       break;
@@ -214,11 +228,16 @@ function main() {
         .reverse()
         .map((s) => `- [${s.date}] ${s.content}`)
         .join("\n");
+      const milestones = getMilestoneEntriesInRange(startDate, endDate);
+      const milestoneLines =
+        milestones.length > 0 ? formatEntriesForPrompt(milestones) : "(none flagged this week)";
       console.log(
         `Review the past week's daily summaries (${startDate} to ${endDate}) below and identify ` +
-          `the single strongest article angle from the week's work. Respond with an outline: a title ` +
+          `the single strongest article angle from the week's work. Weigh flagged milestones heavily — ` +
+          `they were already judged post-worthy in the moment. Respond with an outline: a title ` +
           `and 3-5 supporting bullets, in the voice given. This is exploratory — do not save it as a draft.\n\n` +
           `Voice: ${voice}\n\n` +
+          `Milestones flagged this week:\n${milestoneLines}\n\n` +
           `Summaries:\n${summaryLines}`
       );
       break;

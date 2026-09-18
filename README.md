@@ -96,11 +96,35 @@ fetch material first, draft the text itself in your voice, then store it —
 rather than a black box handing back finished text. That's deliberate: you
 can watch it happen and redirect mid-draft if the tone is off.
 
+### Proactive milestone suggestions
+
+You don't have to remember to ask for a post. Whenever something logged
+represents a completed feature, a resolved hard problem, a shipped
+release, or another genuine milestone — not routine progress — Claude is
+instructed to flag it and tell you, unprompted, that it seems worth a
+post: which platform fits and why, in a line or two. It then waits for you
+to say yes before drafting anything, and it never posts on your behalf —
+copying, editing, and actually publishing the finished draft stays
+entirely your call.
+
+This works the same way in both interfaces: the MCP server advertises it
+as standing server `instructions` (plus in `log_entry`'s own description),
+and the skill carries the identical guidance in `SKILL.md`. Milestone
+entries are stored with a flag (`milestone: true` / `--milestone`) so they
+also surface prominently — marked `★ MILESTONE` — in `generate_post`
+material and in `weekly_review`, which weighs them heavily when picking
+the week's strongest angle. You can also flag something as a milestone
+after the fact with `flag_milestone` / `flag-milestone <entry_id>`, if its
+significance only becomes clear later.
+
 ## Tools / commands
 
-Both interfaces expose the same seven operations:
+Both interfaces expose the same nine operations:
 
-- `log_entry` / `log` — log a raw activity note.
+- `log_entry` / `log` — log a raw activity note. Accepts an optional
+  `milestone` flag for genuinely significant work (see above).
+- `flag_milestone` / `flag-milestone` — retroactively mark an existing
+  entry as a milestone.
 - `get_entries` / `entries` — fetch raw entries in a date range.
 - `generate_daily_summary` / `summary` — two-phase: call without the
   drafted text to get the day's entries plus drafting instructions; call
