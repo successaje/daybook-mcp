@@ -67,3 +67,7 @@ in [`src/prompts.ts`](./src/prompts.ts).
 project uses Node instead (Node 22+ can run the TypeScript sources directly
 via `node --experimental-strip-types`, or build with `npm run build` and run
 `dist/`).
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
