@@ -153,6 +153,13 @@ export function insertDraft(
     .get(info.lastInsertRowid) as DraftRow;
 }
 
+export function updateDraft(draftId: number, content: string): DraftRow | undefined {
+  db.prepare(`UPDATE drafts SET content = ? WHERE id = ?`).run(content, draftId);
+  return db.prepare(`SELECT * FROM drafts WHERE id = ?`).get(draftId) as
+    | DraftRow
+    | undefined;
+}
+
 export function listDrafts(status?: string): DraftRow[] {
   if (status) {
     return db

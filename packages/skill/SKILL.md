@@ -129,6 +129,17 @@ the user the draft and let them decide what to do with it.
 node scripts/cli.js drafts [--status draft|posted]
 ```
 
+### Revise a draft
+
+If the user wants wording changed after seeing a draft — a different
+opening line, a more personal framing, cutting something — rewrite the
+full text yourself and replace the stored content, rather than creating a
+second draft for the same post:
+
+```bash
+node scripts/cli.js update-draft <draft_id> --text "<revised content>"
+```
+
 ### Mark a draft as posted
 
 Only do this when the user confirms they've actually posted it somewhere —

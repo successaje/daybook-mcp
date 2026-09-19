@@ -11,6 +11,7 @@ import {
   getSummariesInRange,
   insertDraft,
   listDrafts,
+  updateDraft,
   markDraftPosted,
   loadVoice,
   PLATFORM_RULES,
@@ -299,6 +300,35 @@ server.registerTool(
     );
     return {
       content: [{ type: "text", text: lines.join("\n\n") }],
+    };
+  }
+);
+
+server.registerTool(
+  "update_draft",
+  {
+    title: "Update Draft",
+    description: "Replace a stored draft's content, e.g. after revising its wording.",
+    inputSchema: {
+      draft_id: z.number().int().describe("The id of the draft to update."),
+      content: z.string().min(1).describe("The revised draft text."),
+    },
+  },
+  async ({ draft_id, content }) => {
+    const updated = updateDraft(draft_id, content);
+    if (!updated) {
+      return {
+        content: [{ type: "text", text: `No draft found with id ${draft_id}.` }],
+        isError: true,
+      };
+    }
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Draft #${updated.id} updated:\n\n${updated.content}`,
+        },
+      ],
     };
   }
 );

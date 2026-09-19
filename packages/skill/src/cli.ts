@@ -8,6 +8,7 @@ import {
   getSummariesInRange,
   insertDraft,
   listDrafts,
+  updateDraft,
   markDraftPosted,
   loadVoice,
   PLATFORM_RULES,
@@ -66,6 +67,7 @@ Commands:
   summary --date <date> [--text "<summary>"]
   post --start <date> --end <date> --platform <x|medium|linkedin> [--text "<content>"]
   drafts [--status draft|posted]
+  update-draft <draft_id> --text "<revised content>"
   mark-posted <draft_id>
   review
 `;
@@ -201,6 +203,16 @@ function main() {
           `#${d.id} [${d.platform}] ${d.date_range_start}..${d.date_range_end} (${d.status}, created ${d.created_at}):\n${d.content}\n`
         );
       }
+      break;
+    }
+
+    case "update-draft": {
+      const id = Number(positional[0]);
+      const text = str(flags, "text");
+      if (!id || !text) fail('Usage: update-draft <draft_id> --text "<revised content>"');
+      const updated = updateDraft(id, text);
+      if (!updated) fail(`No draft found with id ${id}.`);
+      console.log(`Draft #${updated.id} updated:\n\n${updated.content}`);
       break;
     }
 
