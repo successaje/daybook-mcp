@@ -133,6 +133,8 @@ Both interfaces expose the same nine operations:
   `medium`, or `linkedin`, each with its own tone rules.
 - `list_drafts` / `drafts` — list stored drafts, optionally filtered by
   `draft`/`posted`.
+- `update_draft` / `update-draft` — overwrite a stored draft's content in
+  place, for when the wording needs a pass before it goes out.
 - `mark_posted` / `mark-posted` — flip a draft's status to `posted`.
 - `weekly_review` / `review` — pulls the last 7 days of summaries and asks
   you to identify the week's strongest article angle as an outline.
